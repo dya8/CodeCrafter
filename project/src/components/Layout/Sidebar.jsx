@@ -28,7 +28,8 @@ const location = useLocation();
   const familyNavItems = [
   { id: 'dashboard', label: t('nav.home'), icon: Home, route: `/family-dashboard/${user?.id}` },
   { id: 'community', label: t('nav.community'), icon: Users, route: '/community' },
-  { id: 'waste', label: t('Manage Waste'), icon: Trash2, route: '/waste' },
+  { id: 'waste', label: t('Manage Waste'), icon: Trash2, route: `/waste/${user?.id}` },
+  { id: 'requests', label: t('Pickup Requests'), icon: Truck, route: `/pickup-requests/${user?.id}` },
   { id: 'videos', label: t('Video Lessons'), icon: Youtube, route: '/videos' },
   { id: 'segregation', label: t('Segregate Waste'), icon: BarChart3, route: '/segregation' },
   { id: 'profile', label: t('nav.profile'), icon: User, route: '/profile' } // Coming soon
@@ -37,9 +38,8 @@ const location = useLocation();
 
   const harithaNavItems = [
   { id: 'dashboard', label: t('nav.home'), icon: Home, route: `/haritha-dashboard/${user?.id}` },
-  { id: 'pickups', label: t('haritha.pickup.queue'), icon: Truck, route: '/pickups' },
+  { id: 'pickups', label: t('haritha.pickup.queue'), icon: Truck, route: `/pickups` },
   { id: 'map', label: t('haritha.map'), icon: MapPin, route: '/map' },
-  { id: 'employment', label: t('haritha.employment'), icon: FileText, route: '/employment' },
   { id: 'profile', label: t('nav.profile'), icon: User, route: '/profile' }
 ];
 

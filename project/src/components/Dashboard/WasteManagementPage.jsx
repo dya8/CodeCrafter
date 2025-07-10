@@ -1,5 +1,7 @@
 import React, { useState } from 'react';
 import { Cpu, Leaf, ShieldPlus, Shirt } from 'lucide-react';
+import { useAuth } from '../../contexts/AuthContext';
+import { useParams } from 'react-router-dom'; // ✅ Import
 
 const wasteTypes = [
   {
@@ -41,19 +43,46 @@ const wasteTypes = [
 ];
 
 const WasteManagementPage = () => {
+  const { id } = useParams(); // ✅ get family ID from URL
   const [expandedId, setExpandedId] = useState(null);
   const [amountKg, setAmountKg] = useState({});
 
-  const toggleCard = (id) => {
-    setExpandedId((prev) => (prev === id ? null : id));
+  const toggleCard = (wasteId) => {
+    setExpandedId((prev) => (prev === wasteId ? null : wasteId));
   };
 
-  const dummyPickup = (id) => {
-    if (!amountKg[id] || parseFloat(amountKg[id]) <= 0) {
+  const requestPickup = async (wasteId) => {
+    const amount = parseFloat(amountKg[wasteId]);
+    if (!amount || amount <= 0) {
       alert('Please enter a valid amount in kg.');
       return;
     }
-    alert(`Pickup requested for ${amountKg[id]} kg of ${id}`);
+
+    try {
+      const res = await fetch('http://localhost:5000/api/pickup-request', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          familyId: id, // ✅ Use URL param instead of user.id
+          wasteType: wasteId,
+          amountKg: amount,
+        }),
+      });
+
+      const data = await res.json();
+
+      if (res.ok) {
+        alert(data.message);
+        setAmountKg((prev) => ({ ...prev, [wasteId]: '' }));
+      } else {
+        alert(data.message || 'Pickup failed.');
+      }
+    } catch (error) {
+      console.error('❌ Pickup request error:', error);
+      alert('Something went wrong.');
+    }
   };
 
   return (
@@ -101,7 +130,7 @@ const WasteManagementPage = () => {
                       <button
                         onClick={(e) => {
                           e.stopPropagation();
-                          dummyPickup(id);
+                          requestPickup(id);
                         }}
                         className="mt-4 inline-block bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg shadow"
                       >
@@ -119,8 +148,7 @@ const WasteManagementPage = () => {
                           loading="lazy"
                           allowFullScreen
                           className="rounded"
-                          src={`https://www.google.com/maps/embed?pb=!1m14!1m12!1m3!1d3929.193114292843!2d76.341!3d10.015!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!5e0!3m2!1sen!2sin!4v1654000000000!5m2!1sen!2sin`}
-
+                          src="https://www.google.com/maps/embed?pb=!1m14!1m12!1m3!1d3929.193114292843!2d76.341!3d10.015!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!5e0!3m2!1sen!2sin!4v1654000000000!5m2!1sen!2sin"
                         />
                       </div>
                       <p className="mt-2 text-xs text-gray-500">
@@ -139,3 +167,4 @@ const WasteManagementPage = () => {
 };
 
 export default WasteManagementPage;
+

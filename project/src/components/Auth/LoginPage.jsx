@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useLanguage } from '../../contexts/LanguageContext';
 import { useTheme } from '../../contexts/ThemeContext';
 import { Leaf, Lock, Mail, Globe, Sun, Moon } from 'lucide-react';
+import { useAuth } from "../../contexts/AuthContext";
 
 const LoginPage = () => {
   const { t, language, toggleLanguage } = useLanguage();

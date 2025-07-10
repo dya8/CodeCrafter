@@ -4,11 +4,11 @@ import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-d
 import { ThemeProvider } from './contexts/ThemeContext';
 import { AuthProvider } from './contexts/AuthContext';
 import { LanguageProvider } from './contexts/LanguageContext';
-
+import CollectorPickupQueue from './components/Dashboard/CollectorPickupQueue';
 import LoginPage from './components/Auth/LoginPage';
 import SignUp from './components/Auth/SignUp';
 import Layout from './components/Layout/Layout';
-
+import FamilyPickupRequests from './components/Dashboard/FamilyPickupRequests';
 import FamilyDashboard from './components/Dashboard/FamilyDashboard';
 import HarithaDashboard from './components/Dashboard/HarithaDashboard';
 import CommunityDashboard from './components/Dashboard/CommunityDashboard';
@@ -30,10 +30,12 @@ function App() {
               <Route element={<Layout />}>
                 <Route path="/family-dashboard/:id" element={<FamilyDashboard />} />
                 <Route path="/haritha-dashboard/:id" element={<HarithaDashboard />} />
+                <Route path="/pickups/:id" element={<CollectorPickupQueue />} />
                 <Route path="/community" element={<CommunityDashboard />} />
-                <Route path="/waste" element={<WasteManagementPage />} />
+                <Route path="/waste/:id" element={<WasteManagementPage />} />
                 <Route path="/videos" element={<VideoLessonsPage />} />
-                <Route path="/segregation" element={<SegregateWastePage />} />
+                <Route path='/pickup-requests/:id' element={<FamilyPickupRequests/>}/>
+                <Route path="/segregation" element={<SegregateWastePage />}/>
               </Route>
 
               {/* Catch-all fallback */}

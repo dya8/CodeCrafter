@@ -232,6 +232,84 @@ app.get('/api/collector/:id', async (req, res) => {
     res.status(500).json({ message: 'Server error' });
   }
 });
+app.post("/api/pickup-request", async (req, res) => {
+  const { familyId, wasteType, amountKg } = req.body;
+
+  if (!familyId || !wasteType || !amountKg) {
+    return res.status(400).json({ message: "Missing required fields" });
+  }
+
+  if (parseFloat(amountKg) <= 2) {
+    return res.status(400).json({ message: "Minimum 2kg required for pickup request." });
+  }
+
+  try {
+    // Get family details to find city
+    const family = await Family.findById(familyId);
+    if (!family) return res.status(404).json({ message: "Family not found" });
+
+    const todayStart = new Date();
+    todayStart.setHours(0, 0, 0, 0);
+
+    // Find collectors in same city
+    const eligibleCollectors = await Collector.find({ city: family.city });
+
+    let assignedCollector = null;
+
+    for (const collector of eligibleCollectors) {
+      const count = await PickupRequest.countDocuments({
+        collectorId: collector._id,
+        pickupDate: { $gte: todayStart },
+      });
+
+      if (count < 5) {
+        assignedCollector = collector;
+        break;
+      }
+    }
+
+    const newRequest = new PickupRequest({
+      familyId,
+      collectorId: assignedCollector ? assignedCollector._id : null,
+      wasteType,
+      amountKg,
+      status: assignedCollector ? "assigned" : "pending",
+      pickupDate: new Date(),
+    });
+    await newRequest.save();
+
+    res.status(201).json({
+      message: assignedCollector
+        ? "Pickup request submitted and assigned to a collector."
+        : "Pickup request submitted and queued (no collector available).",
+      request: newRequest,
+    });
+  } catch (err) {
+    console.error("❌ Error handling pickup:", err);
+    res.status(500).json({ message: "Server error" });
+  }
+});
+app.get("/api/family/:id/requests", async (req, res) => {
+  const { id } = req.params;
+  const requests = await PickupRequest.find({ familyId: id }).populate("collectorId");
+  res.json(requests);
+});
+app.get("/api/collector/:id/requests", async (req, res) => {
+  const { id } = req.params;
+
+  try {
+    const requests = await PickupRequest.find({ collectorId:  new mongoose.Types.ObjectId(id), })
+      .populate("familyId", "name address")
+      .sort({ requestedAt: 1 }); // ✅ Oldest first (FIFO)
+
+    res.json(requests);
+  } catch (err) {
+    console.error("❌ Error fetching collector pickups:", err);
+    res.status(500).json({ message: "Server error" });
+  }
+});
+
+
 
 
 
