@@ -1,6 +1,9 @@
-import React, { useState } from 'react';
+
+
+import React, { useState, useEffect  } from 'react';
 import { useAuth } from '../../contexts/AuthContext';
 import { useLanguage } from '../../contexts/LanguageContext';
+
 import { 
   Truck, 
   MapPin, 
@@ -14,8 +17,24 @@ import {
   Navigation,
   FileText
 } from 'lucide-react';
+import { GoogleMap, LoadScript, Marker, InfoWindow } from '@react-google-maps/api';
+import * as Geocode from 'react-geocode';
+const GOOGLE_MAPS_API_KEY = 'AIzaSyA8dn8jSR4UFxc6YTqLBvQJ4WSonEm6A2Q';
+const mapContainerStyle = {
+  width: '100%',
+  height: '100%',
+};
 
+const center = {
+  lat: 8.5241, // Trivandrum latitude
+  lng: 76.9366, // Trivandrum longitude
+};
 const HarithaDashboard = () => {
+  // Initialize Geocode API
+  Geocode.setKey(GOOGLE_MAPS_API_KEY);
+  Geocode.setLanguage('en');
+  Geocode.setRegion('in');
+
   const { user } = useAuth();
   const { t } = useLanguage();
   const [selectedPickup, setSelectedPickup] = useState(null);
@@ -76,6 +95,38 @@ const HarithaDashboard = () => {
       default: return 'text-gray-600 bg-gray-50 dark:bg-gray-900/20';
     }
   };
+const [coordinates, setCoordinates] = useState([]);
+
+useEffect(() => {
+  const fetchCoords = async () => {
+    const results = await Promise.all(
+      pickupQueue.map(async (pickup) => {
+        try {
+          const response = await fetch(
+            `https://maps.googleapis.com/maps/api/geocode/json?address=${encodeURIComponent(
+              pickup.address
+            )}&key=${GOOGLE_MAPS_API_KEY}`
+          );
+          const data = await response.json();
+          if (data.results.length > 0) {
+            const { lat, lng } = data.results[0].geometry.location;
+            return { ...pickup, lat, lng };
+          } else {
+            console.error(`No results for ${pickup.address}`);
+            return null;
+          }
+        } catch (err) {
+          console.error(`Geocoding failed for ${pickup.address}`, err);
+          return null;
+        }
+      })
+    );
+    setCoordinates(results.filter(Boolean));
+  };
+
+  fetchCoords();
+}, []);
+
 
   return (
     <div className="space-y-6">
@@ -193,54 +244,41 @@ const HarithaDashboard = () => {
 
       {/* Map Section */}
       <div className="bg-white dark:bg-gray-800 rounded-xl p-6 border border-gray-200 dark:border-gray-700">
-        <div className="flex items-center justify-between mb-6">
-          <h2 className="text-xl font-bold text-gray-900 dark:text-white">
-            {t('haritha.map')}
-          </h2>
-          <MapPin className="h-6 w-6 text-green-500" />
-        </div>
-        <div className="bg-gray-100 dark:bg-gray-700 rounded-lg h-64 flex items-center justify-center">
-          <div className="text-center">
-            <MapPin className="h-12 w-12 text-gray-400 mx-auto mb-2" />
-            <p className="text-gray-600 dark:text-gray-400">
-              Interactive map with pickup locations
-            </p>
-            <p className="text-sm text-gray-500 dark:text-gray-500 mt-1">
-              Map integration coming soon
-            </p>
-          </div>
-        </div>
-      </div>
+  <div className="flex items-center justify-between mb-6">
+    <h2 className="text-xl font-bold text-gray-900 dark:text-white">
+      {t('haritha.map')}
+    </h2>
+    <MapPin className="h-6 w-6 text-green-500" />
+  </div>
+  <div className="h-64 rounded-lg overflow-hidden">
+    <LoadScript googleMapsApiKey={GOOGLE_MAPS_API_KEY}>
+      <GoogleMap mapContainerStyle={mapContainerStyle} zoom={12} center={center}>
+        {coordinates.map((pickup, index) => (
+          <Marker
+            key={index}
+            position={{ lat: pickup.lat, lng: pickup.lng }}
+            onClick={() => setSelectedPickup(pickup)}
+          />
+        ))}
 
-      {/* Employment Form */}
-      <div className="bg-white dark:bg-gray-800 rounded-xl p-6 border border-gray-200 dark:border-gray-700">
-        <div className="flex items-center justify-between mb-6">
-          <h2 className="text-xl font-bold text-gray-900 dark:text-white">
-            {t('haritha.employment')}
-          </h2>
-          <FileText className="h-6 w-6 text-purple-500" />
-        </div>
-        <div className="bg-gradient-to-r from-purple-50 to-pink-50 dark:from-purple-900/20 dark:to-pink-900/20 rounded-lg p-6">
-          <div className="flex items-center justify-between">
+        {selectedPickup && (
+          <InfoWindow
+            position={{ lat: selectedPickup.lat, lng: selectedPickup.lng }}
+            onCloseClick={() => setSelectedPickup(null)}
+          >
             <div>
-              <h3 className="font-semibold text-gray-900 dark:text-white mb-2">
-                Join Our Team
-              </h3>
-              <p className="text-sm text-gray-600 dark:text-gray-400 mb-4">
-                Help us expand our waste management services. Apply to become a Haritha Karma Sena member.
-              </p>
-              <button className="bg-purple-500 text-white px-4 py-2 rounded-md hover:bg-purple-600 transition-colors">
-                Apply Now
-              </button>
+              <h4 className="font-semibold">{selectedPickup.householdName}</h4>
+              <p className="text-sm">{selectedPickup.address}</p>
+              <p className="text-xs">{selectedPickup.wasteType}</p>
             </div>
-            <div className="hidden md:block">
-              <div className="w-16 h-16 bg-purple-100 dark:bg-purple-900/40 rounded-full flex items-center justify-center">
-                <User className="h-8 w-8 text-purple-600 dark:text-purple-400" />
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
+          </InfoWindow>
+        )}
+      </GoogleMap>
+    </LoadScript>
+  </div>
+</div>
+ 
+    
     </div>
   );
 };

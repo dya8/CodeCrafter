@@ -29,7 +29,7 @@ const Sidebar = ({ isOpen, onClose, activeSection, onNavigate }) => {
     { id: 'dashboard', label: t('nav.home'), icon: Home },
     { id: 'pickups', label: t('haritha.pickup.queue'), icon: Truck },
     { id: 'map', label: t('haritha.map'), icon: MapPin },
-    { id: 'employment', label: t('haritha.employment'), icon: FileText },
+ 
     { id: 'profile', label: t('nav.profile'), icon: User },
   ];
 
