@@ -1,4 +1,5 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { useParams } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
 import { useLanguage } from '../../contexts/LanguageContext';
 import { 
@@ -16,9 +17,27 @@ import {
 } from 'lucide-react';
 
 const HarithaDashboard = () => {
-  const { user } = useAuth();
-  const { t } = useLanguage();
+  const { id } = useParams();
+  const [user, setUser] = useState(null);
+  const { t } = useLanguage(); // ✅ t is declared here
+
   const [selectedPickup, setSelectedPickup] = useState(null);
+    useEffect(() => {
+    const fetchHarithaUser = async () => {
+      try {
+        const res = await fetch(`http://localhost:5000/api/collector/${id}`);
+        const data = await res.json();
+        setUser(data);
+        console.log("🟢 Haritha user fetched:", data);
+      } catch (err) {
+        console.error('Error fetching Haritha user:', err);
+      }
+    };
+
+    if (id) fetchHarithaUser();
+  }, [id]);
+
+  if (!user) return <div className="p-10 text-center">Loading...</div>;
 
   const stats = [
     { label: t('haritha.pending.pickups'), value: '12', icon: Clock, color: 'text-orange-600' },

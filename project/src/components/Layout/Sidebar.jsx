@@ -11,7 +11,9 @@ import {
   FileText, 
   X,
   BarChart3,
-  Leaf
+  Leaf,
+  Trash2,
+  Youtube
 } from 'lucide-react';
 
 const Sidebar = ({ isOpen, onClose, activeSection, onNavigate }) => {
@@ -21,7 +23,9 @@ const Sidebar = ({ isOpen, onClose, activeSection, onNavigate }) => {
   const familyNavItems = [
     { id: 'dashboard', label: t('nav.home'), icon: Home },
     { id: 'community', label: t('nav.community'), icon: Users },
-    { id: 'education', label: t('nav.education'), icon: BookOpen },
+    { id: 'waste', label: t('Manage Waste'), icon: Trash2 },
+    { id: 'videos', label: t('Video Lessons'), icon: Youtube },
+    { id: 'segregation', label: t('Segregate Waste'), icon: BarChart3 }, 
     { id: 'profile', label: t('nav.profile'), icon: User },
   ];
 
@@ -96,32 +100,33 @@ const Sidebar = ({ isOpen, onClose, activeSection, onNavigate }) => {
 
           {/* User Info */}
           {user && (
-            <div className="p-4 border-t border-gray-200 dark:border-gray-700">
-              <div className="flex items-center">
-                <div className="w-10 h-10 bg-gradient-to-br from-green-500 to-emerald-600 rounded-full flex items-center justify-center">
-                  <span className="text-white font-semibold text-sm">
-                    {user.name.charAt(0)}
-                  </span>
-                </div>
-                <div className="ml-3">
-                  <p className="text-sm font-medium text-gray-900 dark:text-white">
-                    {user.name}
-                  </p>
-                  <p className="text-xs text-gray-500 dark:text-gray-400 capitalize">
-                    {user.role.replace('-', ' ')}
-                  </p>
-                  {user.ecoPoints && (
-                    <div className="flex items-center mt-1">
-                      <Leaf className="h-3 w-3 text-green-500 mr-1" />
-                      <span className="text-xs text-green-600 dark:text-green-400 font-medium">
-                        {user.ecoPoints} {t('family.eco.points')}
-                      </span>
-                    </div>
-                  )}
-                </div>
-              </div>
-            </div>
-          )}
+  <div className="p-4 border-t border-gray-200 dark:border-gray-700">
+    <div className="flex items-center">
+      <div className="w-10 h-10 bg-gradient-to-br from-green-500 to-emerald-600 rounded-full flex items-center justify-center">
+        <span className="text-white font-semibold text-sm">
+          {user?.name?.charAt(0) || ''}
+        </span>
+      </div>
+      <div className="ml-3">
+        <p className="text-sm font-medium text-gray-900 dark:text-white">
+          {user?.name || 'User'}
+        </p>
+        <p className="text-xs text-gray-500 dark:text-gray-400 capitalize">
+          {user?.role?.replace('-', ' ') || ''}
+        </p>
+        {user.ecoPoints && (
+          <div className="flex items-center mt-1">
+            <Leaf className="h-3 w-3 text-green-500 mr-1" />
+            <span className="text-xs text-green-600 dark:text-green-400 font-medium">
+              {user.ecoPoints} {t('family.eco.points')}
+            </span>
+          </div>
+        )}
+      </div>
+    </div>
+  </div>
+)}
+
         </div>
       </div>
     </>

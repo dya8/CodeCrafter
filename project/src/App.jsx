@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { BrowserRouter as Router } from 'react-router-dom';
+import { BrowserRouter as Router,Routes,Route } from 'react-router-dom';
 import { ThemeProvider } from './contexts/ThemeContext';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
 import { LanguageProvider } from './contexts/LanguageContext';
@@ -10,7 +10,10 @@ import LoginPage from './components/Auth/LoginPage';
 import FamilyDashboard from './components/Dashboard/FamilyDashboard';
 import HarithaDashboard from './components/Dashboard/HarithaDashboard';
 import CommunityDashboard from './components/Dashboard/CommunityDashboard';
-
+import WasteManagementPage from './components/Dashboard/WasteManagementPage';
+import VideoLessonsPage from './components/Dashboard/VideoLessonsPage';
+import SegregateWastePage from './components/Dashboard/SegregateWastePage';
+import SignUp from './components/Auth/SignUp'; // <-- Make sure this exists
 const AppContent = () => {
   const { user, isAuthenticated } = useAuth();
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -43,6 +46,12 @@ const AppContent = () => {
         return <div className="p-8 text-center">Educational content coming soon...</div>;
       case 'profile':
         return <div className="p-8 text-center">Profile settings coming soon...</div>;
+      case 'waste':
+        return <WasteManagementPage />;
+      case 'videos':
+        return <VideoLessonsPage />;
+      case 'segregation':
+        return <SegregateWastePage />;
       default:
         return user?.role === 'family' ? <FamilyDashboard /> : <HarithaDashboard />;
     }
@@ -73,13 +82,20 @@ const AppContent = () => {
   );
 };
 
+// Main App component
 function App() {
   return (
     <ThemeProvider>
       <LanguageProvider>
         <AuthProvider>
           <Router>
-            <AppContent />
+            <Routes>
+              <Route path="/family-dashboard/:id" element={<FamilyDashboard />} />
+              <Route path='/haritha-dashboard/:id' element={<HarithaDashboard/>}/>
+              <Route path="/login" element={<LoginPage />} />
+              <Route path="/signup" element={<SignUp />} />
+              <Route path="/*" element={<AppContent/>} />
+            </Routes>
           </Router>
         </AuthProvider>
       </LanguageProvider>

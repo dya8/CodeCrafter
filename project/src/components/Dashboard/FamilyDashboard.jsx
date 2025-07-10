@@ -1,5 +1,6 @@
-import React, { useState } from 'react';
+import React, { useState ,useEffect } from 'react';
 import { useAuth } from '../../contexts/AuthContext';
+import { useParams, useLocation, Navigate } from 'react-router-dom';
 import { useLanguage } from '../../contexts/LanguageContext';
 import { 
   Leaf, 
@@ -16,9 +17,36 @@ import {
 } from 'lucide-react';
 
 const FamilyDashboard = () => {
-  const { user } = useAuth();
+  const {id}=useParams();
+  console.log("👀 Route param ID:", id);
+  const [user, setUser] = useState(null);
+  const [loading, setLoading] = useState(true);
   const { t } = useLanguage();
   const [selectedFile, setSelectedFile] = useState(null);
+  // ✅ Fetch user by ID
+  useEffect(() => {
+    setLoading(true);
+    const fetchUser = async () => {
+      try {
+        const res = await fetch(`http://localhost:5000/api/family/${id}`);
+        const data = await res.json();
+        setUser(data);
+        console.log("Fetched user:", data);
+      } catch (err) {
+        console.error('Error fetching user:', err);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchUser();
+  }, [id]);
+  
+  // ❌ Not logged in or invalid ID
+  if (!user && !loading) return <Navigate to="/login" />;
+
+  // ⏳ Show loading spinner
+  if (loading || !user) return <div className="p-10 text-center text-gray-500">Loading...</div>;
 
   const handleFileUpload = (e) => {
     const file = e.target.files?.[0];
