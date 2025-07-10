@@ -8,6 +8,7 @@ const LoginPage = () => {
   const { t, language, toggleLanguage } = useLanguage();
   const { isDark, toggleTheme } = useTheme();
   const navigate = useNavigate();
+  const { login } = useAuth();
 
   const [formData, setFormData] = useState({
     email: '',

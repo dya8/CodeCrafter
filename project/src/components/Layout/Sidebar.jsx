@@ -1,6 +1,8 @@
 import React from 'react';
 import { useAuth } from '../../contexts/AuthContext';
 import { useLanguage } from '../../contexts/LanguageContext';
+import { useNavigate, useLocation } from 'react-router-dom';
+
 import { 
   Home, 
   Users, 
@@ -17,27 +19,32 @@ import {
 } from 'lucide-react';
 
 const Sidebar = ({ isOpen, onClose, activeSection, onNavigate }) => {
+  const navigate = useNavigate();
+const location = useLocation();
   const { user } = useAuth();
   const { t } = useLanguage();
+  
 
   const familyNavItems = [
-    { id: 'dashboard', label: t('nav.home'), icon: Home },
-    { id: 'community', label: t('nav.community'), icon: Users },
-    { id: 'waste', label: t('Manage Waste'), icon: Trash2 },
-    { id: 'videos', label: t('Video Lessons'), icon: Youtube },
-    { id: 'segregation', label: t('Segregate Waste'), icon: BarChart3 }, 
-    { id: 'profile', label: t('nav.profile'), icon: User },
-  ];
+  { id: 'dashboard', label: t('nav.home'), icon: Home, route: `/family-dashboard/${user?.id}` },
+  { id: 'community', label: t('nav.community'), icon: Users, route: '/community' },
+  { id: 'waste', label: t('Manage Waste'), icon: Trash2, route: '/waste' },
+  { id: 'videos', label: t('Video Lessons'), icon: Youtube, route: '/videos' },
+  { id: 'segregation', label: t('Segregate Waste'), icon: BarChart3, route: '/segregation' },
+  { id: 'profile', label: t('nav.profile'), icon: User, route: '/profile' } // Coming soon
+];
+
 
   const harithaNavItems = [
-    { id: 'dashboard', label: t('nav.home'), icon: Home },
-    { id: 'pickups', label: t('haritha.pickup.queue'), icon: Truck },
-    { id: 'map', label: t('haritha.map'), icon: MapPin },
-    { id: 'employment', label: t('haritha.employment'), icon: FileText },
-    { id: 'profile', label: t('nav.profile'), icon: User },
-  ];
+  { id: 'dashboard', label: t('nav.home'), icon: Home, route: `/haritha-dashboard/${user?.id}` },
+  { id: 'pickups', label: t('haritha.pickup.queue'), icon: Truck, route: '/pickups' },
+  { id: 'map', label: t('haritha.map'), icon: MapPin, route: '/map' },
+  { id: 'employment', label: t('haritha.employment'), icon: FileText, route: '/employment' },
+  { id: 'profile', label: t('nav.profile'), icon: User, route: '/profile' }
+];
 
-  const navItems = user?.role === 'family' ? familyNavItems : harithaNavItems;
+
+  const navItems = user?.role === 'Family' ? familyNavItems : harithaNavItems;
 
   return (
     <>
@@ -76,15 +83,19 @@ const Sidebar = ({ isOpen, onClose, activeSection, onNavigate }) => {
           <nav className="flex-1 p-4 space-y-2">
             {navItems.map((item) => {
               const Icon = item.icon;
-              const isActive = activeSection === item.id;
+              const isActive = location.pathname === item.route;
+
               
               return (
                 <button
                   key={item.id}
                   onClick={() => {
-                    onNavigate(item.id);
-                    onClose();
-                  }}
+  if (item.route) {
+    navigate(item.route);
+    onClose();
+  }
+}}
+
                   className={`w-full flex items-center px-3 py-2 text-sm font-medium rounded-lg transition-colors ${
                     isActive
                       ? 'bg-green-100 dark:bg-green-900/20 text-green-700 dark:text-green-400'

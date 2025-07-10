@@ -20,6 +20,7 @@ const FamilyDashboard = () => {
   const {id}=useParams();
   console.log("👀 Route param ID:", id);
   const [user, setUser] = useState(null);
+  const { setUser: setAuthUser } = useAuth(); 
   const [loading, setLoading] = useState(true);
   const { t } = useLanguage();
   const [selectedFile, setSelectedFile] = useState(null);
@@ -31,6 +32,7 @@ const FamilyDashboard = () => {
         const res = await fetch(`http://localhost:5000/api/family/${id}`);
         const data = await res.json();
         setUser(data);
+        setAuthUser(data);
         console.log("Fetched user:", data);
       } catch (err) {
         console.error('Error fetching user:', err);
