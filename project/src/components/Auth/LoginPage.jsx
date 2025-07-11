@@ -9,7 +9,7 @@ const LoginPage = () => {
   const { t, language, toggleLanguage } = useLanguage();
   const { isDark, toggleTheme } = useTheme();
   const navigate = useNavigate();
-  const { login } = useAuth();
+  const { login,setUser } = useAuth();
 
   const [formData, setFormData] = useState({
     email: '',
@@ -45,8 +45,11 @@ const LoginPage = () => {
     }
 
     alert(data.message);
+
      console.log("✅ Login successful. Navigating...");
      console.log(data.user.role)
+     setUser(data.user); // ✅ set user in context
+localStorage.setItem('user', JSON.stringify(data.user)); 
     if (data.user.role === 'Family') {
 
 console.log("Navigating to:", `/family-dashboard/${data.user.id}`);

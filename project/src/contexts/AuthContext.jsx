@@ -20,23 +20,21 @@ export const AuthProvider = ({ children }) => {
     }
   }, []);
 
-  const login = async (email, password, role) => {
-    // Simulate API call
-    await new Promise(resolve => setTimeout(resolve, 1000));
-    
-    const mockUser = {
-      id: '1',
-      name: role === 'family' ? 'John Doe' : 'Rajesh Kumar',
-      email,
-      role,
-      ecoPoints: role === 'family' ? 1250 : undefined,
-      badges: role === 'family' ? ['Water Saver', 'Waste Warrior'] : undefined
-    };
-    
-    setUser(mockUser);
-    localStorage.setItem('user', JSON.stringify(mockUser));
-    return true;
-  };
+  const login = async (email, password) => {
+  const res = await fetch('http://localhost:5000/api/login', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ email, password }),
+  });
+
+  const data = await res.json();
+  if (!res.ok) throw new Error(data.message || "Login failed");
+
+  setUser(data.user); // real user object
+  localStorage.setItem("user", JSON.stringify(data.user));
+  return true;
+};
+
 
   const logout = () => {
     setUser(null);

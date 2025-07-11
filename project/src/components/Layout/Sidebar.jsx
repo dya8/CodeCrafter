@@ -23,7 +23,8 @@ const Sidebar = ({ isOpen, onClose, activeSection, onNavigate }) => {
 const location = useLocation();
   const { user } = useAuth();
   const { t } = useLanguage();
-  
+  console.log('Sidebar user ID:', user?._id || user?.id);
+
 
   const familyNavItems = [
   { id: 'dashboard', label: t('nav.home'), icon: Home, route: `/family-dashboard/${user?.id}` },
@@ -38,7 +39,7 @@ const location = useLocation();
 
   const harithaNavItems = [
   { id: 'dashboard', label: t('nav.home'), icon: Home, route: `/haritha-dashboard/${user?.id}` },
-  { id: 'pickups', label: t('haritha.pickup.queue'), icon: Truck, route: `/pickups` },
+  { id: 'pickups', label: t('haritha.pickup.queue'), icon: Truck, route: `/pickups/${user?.id}` },
   { id: 'map', label: t('haritha.map'), icon: MapPin, route: '/map' },
   { id: 'profile', label: t('nav.profile'), icon: User, route: '/profile' }
 ];
