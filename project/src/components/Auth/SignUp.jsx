@@ -83,8 +83,6 @@ const SignUp = () => {
             className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-400"
           >
             <option>Family</option>
-            <option>Volunteer</option>
-            <option>Admin</option>
           </select>
         </div>
 

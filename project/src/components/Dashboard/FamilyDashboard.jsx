@@ -50,17 +50,32 @@ const FamilyDashboard = () => {
   // ⏳ Show loading spinner
   if (loading || !user) return <div className="p-10 text-center text-gray-500">Loading...</div>;
 
-  const handleFileUpload = (e) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      setSelectedFile(file);
-      // Simulate file upload
-      setTimeout(() => {
-        setSelectedFile(null);
-        alert('File uploaded successfully!');
-      }, 1000);
+  const handleFileUpload = async (e) => {
+  const file = e.target.files?.[0];
+  if (!file) return;
+
+  const formData = new FormData();
+  formData.append('bill', file);
+
+  try {
+    const res = await fetch(`http://localhost:5000/${id}/upload-bill`, {
+      method: 'POST',
+      body: formData,
+    });
+
+    const data = await res.json();
+    if (res.ok) {
+      alert("✅ Bill uploaded and processed!");
+      console.log("Extracted:", data.data);
+    } else {
+      alert("❌ Error: " + data.message);
     }
-  };
+  } catch (err) {
+    console.error("❌ Upload error:", err);
+    alert("Something went wrong while uploading.");
+  }
+};
+
 
   const ecoMetrics = [
     { label: 'This Month', value: '₹850', change: '+12%', icon: TrendingUp, color: 'text-green-600' },

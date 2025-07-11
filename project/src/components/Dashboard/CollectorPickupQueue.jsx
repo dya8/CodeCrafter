@@ -48,7 +48,7 @@ const CollectorPickupQueue = () => {
                 <p><strong>Amount:</strong> {req.amountKg} kg</p>
                 {req.familyId && (
                   <>
-                    <p><strong>Family Name:</strong> {req.familyId.name}</p>
+                    <p><strong>Family Name:</strong> {req.familyId.email}</p>
                     <p><strong>Address:</strong> {req.familyId.address}</p>
                   </>
                 )}

@@ -2,15 +2,20 @@
 import express from "express";
 import mongoose from "mongoose";
 import cors from "cors";
+import multer from 'multer';
+import pdfParse from 'pdf-parse';
+import fs from 'fs';
+
 
 const app = express();
 app.use(cors());
 app.use(express.json());
+const upload = multer({ dest: 'uploads/' });
 
 // ✅ Connect to MongoDB
 const DB_URI = "mongodb+srv://diyadileep0806:HGdUmqFPDtrL7J88@hackathon1.aqy5syh.mongodb.net/?retryWrites=true&w=majority&appName=Hackathon1";
 
-mongoose.connect(DB_URI)
+mongoose.connect(DB_URI) 
   .then(() => console.log("✅ MongoDB Connected"))
   .catch(err => console.error("❌ MongoDB Error:", err));
 
@@ -69,7 +74,7 @@ const pickupRequestSchema = new mongoose.Schema({
 
   status: {
     type: String,
-    enum: ['pending', 'assigned', 'picked-up', 'cancelled'],
+    enum: ['pending', 'assigned', 'collected', 'cancelled'],
     default: 'pending'
   },
 
@@ -125,6 +130,38 @@ const consumptionSchema = new mongoose.Schema({
 });
 
 const Consumption = mongoose.model('Consumption', consumptionSchema);
+async function processBillPdf(filePath) {
+  const dataBuffer = fs.readFileSync(filePath);
+  const data = await pdfParse(dataBuffer);
+  const text = data.text;
+
+  console.log("📄 Extracted PDF text:\n", text);
+
+  // ⚡ Extract electricity units from line like:
+  // "KWHCumulativeImport      9808.00      10044.00      1      236"
+  const electricityMatch = text.match(/KWHCumulativeImport\s+(\d+\.\d+)\s+(\d+\.\d+)\s+\d+\s+(\d+)/i);
+
+  const electricityUsageKWh = electricityMatch ? parseInt(electricityMatch[3]) : 0;
+
+  // Try to extract the billing month
+  const monthMatch = text.match(/Billing Period\s+(\d{1,2})\/(\d{4})/i);
+  let month = new Date().toLocaleString('default', { month: 'long', year: 'numeric' });
+  if (monthMatch) {
+    const monthNum = parseInt(monthMatch[1]);
+    const year = monthMatch[2];
+    const monthName = new Date(0, monthNum - 1).toLocaleString('default', { month: 'long' });
+    month = `${monthName} ${year}`;
+  }
+
+  return {
+    electricityUsageKWh,
+    waterUsageLiters: 0, // not present in bill
+    petrolConsumptionLiters: 0, // not present in bill
+    month,
+  };
+}
+
+
 // Start server
 app.listen(5000, () => console.log("🚀 Server running on port 5000"));
 app.post('/api/signup', async (req, res) => {
@@ -299,7 +336,7 @@ app.get("/api/collector/:id/requests", async (req, res) => {
 
   try {
     const requests = await PickupRequest.find({ collectorId:  new mongoose.Types.ObjectId(id), })
-      .populate("familyId", "name address")
+      .populate("familyId", "email phone address")
       .sort({ requestedAt: 1 }); // ✅ Oldest first (FIFO)
 
     res.json(requests);
@@ -309,9 +346,70 @@ app.get("/api/collector/:id/requests", async (req, res) => {
   }
 });
 
+// GET assigned pickups for a collector
+app.get('/api/collector/:collectorId/requests', async (req, res) => {
+  try {
+    const { collectorId } = req.params;
+    const requests = await PickupRequest.find({ collectorId, status: { $in: ['assigned', 'collected'] } })
+      .populate('familyId');
+    res.json(requests);
+  } catch (err) {
+    console.error('Error fetching collector requests:', err);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
 
+// PATCH - mark a pickup as collected
+app.patch('/api/collector/request/:requestId/collect', async (req, res) => {
+  try {
+    const { requestId } = req.params;
+    const pickup = await PickupRequest.findById(requestId);
 
+    if (!pickup) {
+      return res.status(404).json({ error: 'Pickup request not found' });
+    }
 
+    pickup.status = 'collected';
+    await pickup.save();
 
+    res.status(200).json({ message: 'Pickup marked as collected', request: pickup });
+  } catch (err) {
+    console.error('Error updating pickup request:', err);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+app.post('/:id/upload-bill', upload.single('bill'), async (req, res) => {
+  const familyId = req.params.id;
+  const filePath = req.file.path;
+
+  try {
+    const result = await processBillPdf(filePath);
+
+    const newConsumption = new Consumption({
+      familyId,
+      month: result.month,
+      electricityUsageKWh: result.electricityUsageKWh,
+      waterUsageLiters: result.waterUsageLiters,
+      petrolConsumptionLiters: result.petrolConsumptionLiters,
+      pdfUrl: filePath,
+    });
+
+    await newConsumption.save();
+
+    res.status(200).json({ message: 'Bill processed', data: newConsumption });
+  } catch (error) {
+    res.status(500).json({ message: 'Error processing bill', error });
+  }
+});
+app.get('/api/family/:id/consumption', async (req, res) => {
+  try {
+    const records = await Consumption.find({ familyId: req.params.id }).sort({ uploadedAt: -1 });
+    res.json(records);
+  } catch (err) {
+    console.error("Error fetching consumption data:", err);
+    res.status(500).json({ message: "Server error" });
+  }
+});
 
 
