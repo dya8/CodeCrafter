@@ -24,6 +24,8 @@ const FamilyDashboard = () => {
   const [loading, setLoading] = useState(true);
   const { t } = useLanguage();
   const [selectedFile, setSelectedFile] = useState(null);
+  const [popupData, setPopupData] = useState(null);
+
   // ✅ Fetch user by ID
   useEffect(() => {
     setLoading(true);
@@ -65,8 +67,17 @@ const FamilyDashboard = () => {
 
     const data = await res.json();
     if (res.ok) {
-      alert("✅ Bill uploaded and processed!");
-      console.log("Extracted:", data.data);
+      const usage = data.data.electricityUsageKWh;
+      const points = data.data.ecoPointsEarned;
+      const billAmount = "₹1140"; // optional if you want dynamic later
+
+      alert(`✅ Bill processed!\nElectricity Used: ${usage} kWh\nEco Points Earned: ${points}`);
+
+      // ✅ Re-fetch updated user info (to show new badges/ecoPoints)
+      const updatedRes = await fetch(`http://localhost:5000/api/family/${id}`);
+      const updatedUser = await updatedRes.json();
+      setUser(updatedUser);
+      setAuthUser(updatedUser);
     } else {
       alert("❌ Error: " + data.message);
     }
@@ -75,6 +86,7 @@ const FamilyDashboard = () => {
     alert("Something went wrong while uploading.");
   }
 };
+
 
 
   const ecoMetrics = [

@@ -134,33 +134,41 @@ async function processBillPdf(filePath) {
   const dataBuffer = fs.readFileSync(filePath);
   const data = await pdfParse(dataBuffer);
   const text = data.text;
-
   console.log("📄 Extracted PDF text:\n", text);
 
-  // ⚡ Extract electricity units from line like:
-  // "KWHCumulativeImport      9808.00      10044.00      1      236"
-  const electricityMatch = text.match(/KWHCumulativeImport\s+(\d+\.\d+)\s+(\d+\.\d+)\s+\d+\s+(\d+)/i);
+  // ✅ Extract electricity usage from line like: KWHCumulativeImport      9808.00      10044.00      1      236
+  const electricityMatch = text.match(/KWHCumulativeImport\s+[\d.]+\s+[\d.]+\s+\d+\s+(\d+)/i);
+  const electricityUsageKWh = electricityMatch ? parseInt(electricityMatch[1]) : 0;
 
-  const electricityUsageKWh = electricityMatch ? parseInt(electricityMatch[3]) : 0;
-
-  // Try to extract the billing month
-  const monthMatch = text.match(/Billing Period\s+(\d{1,2})\/(\d{4})/i);
+  // ✅ Extract billing month
+  const monthMatch = text.match(/Billing Period\s*(\d{1,2})\/(\d{4})/i);
   let month = new Date().toLocaleString('default', { month: 'long', year: 'numeric' });
+
   if (monthMatch) {
-    const monthNum = parseInt(monthMatch[1]);
-    const year = monthMatch[2];
-    const monthName = new Date(0, monthNum - 1).toLocaleString('default', { month: 'long' });
-    month = `${monthName} ${year}`;
+    const [_, m, y] = monthMatch;
+    const monthName = new Date(0, parseInt(m) - 1).toLocaleString('default', { month: 'long' });
+    month = `${monthName} ${y}`;
   }
 
+  // ✅ Calculate ecoPoints
+  const ecoPointsEarned =
+    electricityUsageKWh <= 100
+      ? 50
+      : electricityUsageKWh <= 200
+      ? 30
+      : electricityUsageKWh <= 300
+      ? 10
+      : 0;
+
+  // ✅ Return all values
   return {
     electricityUsageKWh,
-    waterUsageLiters: 0, // not present in bill
-    petrolConsumptionLiters: 0, // not present in bill
+    waterUsageLiters: 0,
+    petrolConsumptionLiters: 0,
+    ecoPointsEarned,
     month,
   };
 }
-
 
 // Start server
 app.listen(5000, () => console.log("🚀 Server running on port 5000"));
@@ -386,22 +394,48 @@ app.post('/:id/upload-bill', upload.single('bill'), async (req, res) => {
   try {
     const result = await processBillPdf(filePath);
 
+    // Save consumption record
     const newConsumption = new Consumption({
       familyId,
       month: result.month,
       electricityUsageKWh: result.electricityUsageKWh,
       waterUsageLiters: result.waterUsageLiters,
       petrolConsumptionLiters: result.petrolConsumptionLiters,
+      ecoPointsEarned: result.ecoPointsEarned,
       pdfUrl: filePath,
     });
-
     await newConsumption.save();
 
-    res.status(200).json({ message: 'Bill processed', data: newConsumption });
+    // Fetch current family data
+    const family = await Family.findById(familyId);
+    const updatedEcoPoints = (family.ecoPoints || 0) + result.ecoPointsEarned;
+    const updatedBadges = new Set(family.badges || []);
+
+    // Add badge(s) if thresholds met
+    if (updatedEcoPoints >= 40 && !updatedBadges.has('Energy Saver')) {
+      updatedBadges.add('Energy Saver');
+    }
+    if (updatedEcoPoints >= 80 && !updatedBadges.has('Eco Champion')) {
+      updatedBadges.add('Eco Champion');
+    }
+
+    // Update ecoPoints and badges
+    await Family.findByIdAndUpdate(familyId, {
+      ecoPoints: updatedEcoPoints,
+      badges: Array.from(updatedBadges)
+    });
+
+    res.status(200).json({
+      message: 'Bill processed',
+      data: newConsumption,
+      points: result.ecoPointsEarned
+    });
   } catch (error) {
+    console.error("❌ Error in upload-bill:", error);
     res.status(500).json({ message: 'Error processing bill', error });
   }
 });
+
 app.get('/api/family/:id/consumption', async (req, res) => {
   try {
     const records = await Consumption.find({ familyId: req.params.id }).sort({ uploadedAt: -1 });
