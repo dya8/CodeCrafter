@@ -1,77 +1,20 @@
-import React, { useState } from 'react';
-import { BrowserRouter as Router } from 'react-router-dom';
+// App.jsx
+import React from 'react';
+import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { ThemeProvider } from './contexts/ThemeContext';
-import { AuthProvider, useAuth } from './contexts/AuthContext';
+import { AuthProvider } from './contexts/AuthContext';
 import { LanguageProvider } from './contexts/LanguageContext';
-import Navbar from './components/Layout/Navbar';
-import Sidebar from './components/Layout/Sidebar';
-import Footer from './components/Layout/Footer';
+import CollectorPickupQueue from './components/Dashboard/CollectorPickupQueue';
 import LoginPage from './components/Auth/LoginPage';
+import SignUp from './components/Auth/SignUp';
+import Layout from './components/Layout/Layout';
+import FamilyPickupRequests from './components/Dashboard/FamilyPickupRequests';
 import FamilyDashboard from './components/Dashboard/FamilyDashboard';
 import HarithaDashboard from './components/Dashboard/HarithaDashboard';
 import CommunityDashboard from './components/Dashboard/CommunityDashboard';
-
-const AppContent = () => {
-  const { user, isAuthenticated } = useAuth();
-  const [sidebarOpen, setSidebarOpen] = useState(false);
-  const [activeSection, setActiveSection] = useState('dashboard');
-
-  const toggleSidebar = () => setSidebarOpen(!sidebarOpen);
-  const closeSidebar = () => setSidebarOpen(false);
-
-  const handleNavigate = (section) => {
-    setActiveSection(section);
-  };
-
-  const renderContent = () => {
-    if (!isAuthenticated) {
-      return <LoginPage />;
-    }
-
-    switch (activeSection) {
-      case 'dashboard':
-        return user?.role === 'family' ? <FamilyDashboard /> : <HarithaDashboard />;
-      case 'community':
-        return <CommunityDashboard />;
-      case 'pickups':
-        return <HarithaDashboard />;
-      case 'map':
-        return <div className="p-8 text-center">Map view coming soon...</div>;
-      case 'employment':
-        return <div className="p-8 text-center">Employment form coming soon...</div>;
-      case 'education':
-        return <div className="p-8 text-center">Educational content coming soon...</div>;
-      case 'profile':
-        return <div className="p-8 text-center">Profile settings coming soon...</div>;
-      default:
-        return user?.role === 'family' ? <FamilyDashboard /> : <HarithaDashboard />;
-    }
-  };
-
-  if (!isAuthenticated) {
-    return <LoginPage />;
-  }
-
-  return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
-      <Navbar onToggleSidebar={toggleSidebar} />
-      <div className="flex">
-        <Sidebar
-          isOpen={sidebarOpen}
-          onClose={closeSidebar}
-          activeSection={activeSection}
-          onNavigate={handleNavigate}
-        />
-        <main className="flex-1 md:ml-64">
-          <div className="p-6 min-h-screen">
-            {renderContent()}
-          </div>
-          <Footer />
-        </main>
-      </div>
-    </div>
-  );
-};
+import WasteManagementPage from './components/Dashboard/WasteManagementPage';
+import VideoLessonsPage from './components/Dashboard/VideoLessonsPage';
+import SegregateWastePage from './components/Dashboard/SegregateWastePage';
 
 function App() {
   return (
@@ -79,7 +22,25 @@ function App() {
       <LanguageProvider>
         <AuthProvider>
           <Router>
-            <AppContent />
+            <Routes>
+              <Route path="/login" element={<LoginPage />} />
+              <Route path="/signup" element={<SignUp />} />
+
+              {/* Layout wrapper for all authenticated dashboard routes */}
+              <Route element={<Layout />}>
+                <Route path="/family-dashboard/:id" element={<FamilyDashboard />} />
+                <Route path="/haritha-dashboard/:id" element={<HarithaDashboard />} />
+                <Route path="/pickups/:id" element={<CollectorPickupQueue />} />
+                <Route path="/community" element={<CommunityDashboard />} />
+                <Route path="/waste/:id" element={<WasteManagementPage />} />
+                <Route path="/videos" element={<VideoLessonsPage />} />
+                <Route path='/pickup-requests/:id' element={<FamilyPickupRequests/>}/>
+                <Route path="/segregation" element={<SegregateWastePage />}/>
+              </Route>
+
+              {/* Catch-all fallback */}
+              <Route path="*" element={<Navigate to="/login" replace />} />
+            </Routes>
           </Router>
         </AuthProvider>
       </LanguageProvider>

@@ -1,25 +1,21 @@
-
-
-import React, { useState, useEffect  } from 'react';
+import React, { useState, useEffect } from 'react';
+import { useParams } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
 import { useLanguage } from '../../contexts/LanguageContext';
-
-import { 
-  Truck, 
-  MapPin, 
-  Clock, 
-  CheckCircle, 
-  AlertCircle,
-  User,
-  Phone,
-  Home,
-  Calendar,
+import {
+  Truck,
+  MapPin,
+  Clock,
+  CheckCircle,
   Navigation,
-  FileText
+  Calendar,
+  Phone,
+  Home
 } from 'lucide-react';
 import { GoogleMap, LoadScript, Marker, InfoWindow } from '@react-google-maps/api';
-import * as Geocode from 'react-geocode';
+
 const GOOGLE_MAPS_API_KEY = 'AIzaSyA8dn8jSR4UFxc6YTqLBvQJ4WSonEm6A2Q';
+
 const mapContainerStyle = {
   width: '100%',
   height: '100%',
@@ -29,22 +25,14 @@ const center = {
   lat: 8.5241, // Trivandrum latitude
   lng: 76.9366, // Trivandrum longitude
 };
+
 const HarithaDashboard = () => {
-  // Initialize Geocode API
-  Geocode.setKey(GOOGLE_MAPS_API_KEY);
-  Geocode.setLanguage('en');
-  Geocode.setRegion('in');
-
-  const { user } = useAuth();
+  const { id } = useParams();
+  const [user, setUser] = useState(null);
   const { t } = useLanguage();
-  const [selectedPickup, setSelectedPickup] = useState(null);
 
-  const stats = [
-    { label: t('haritha.pending.pickups'), value: '12', icon: Clock, color: 'text-orange-600' },
-    { label: t('haritha.completed.today'), value: '8', icon: CheckCircle, color: 'text-green-600' },
-    { label: 'Total Routes', value: '3', icon: Navigation, color: 'text-blue-600' },
-    { label: 'Active Hours', value: '6.5', icon: Calendar, color: 'text-purple-600' },
-  ];
+  const [selectedPickup, setSelectedPickup] = useState(null);
+  const [coordinates, setCoordinates] = useState([]);
 
   const pickupQueue = [
     {
@@ -82,8 +70,62 @@ const HarithaDashboard = () => {
     },
   ];
 
+  useEffect(() => {
+    const fetchHarithaUser = async () => {
+      try {
+        const res = await fetch(`http://localhost:5000/api/collector/${id}`);
+        const data = await res.json();
+        setUser(data);
+        console.log("🟢 Haritha user fetched:", data);
+      } catch (err) {
+        console.error('Error fetching Haritha user:', err);
+      }
+    };
+
+    if (id) fetchHarithaUser();
+  }, [id]);
+
+  useEffect(() => {
+    const fetchCoords = async () => {
+      const results = await Promise.all(
+        pickupQueue.map(async (pickup) => {
+          try {
+            const response = await fetch(
+              `https://maps.googleapis.com/maps/api/geocode/json?address=${encodeURIComponent(
+                pickup.address
+              )}&key=${GOOGLE_MAPS_API_KEY}`
+            );
+            const data = await response.json();
+            if (data.results.length > 0) {
+              const { lat, lng } = data.results[0].geometry.location;
+              return { ...pickup, lat, lng };
+            } else {
+              console.error(`No results for ${pickup.address}`);
+              return null;
+            }
+          } catch (err) {
+            console.error(`Geocoding failed for ${pickup.address}`, err);
+            return null;
+          }
+        })
+      );
+      setCoordinates(results.filter(Boolean));
+    };
+
+    fetchCoords();
+  }, []);
+
+  // ✅ Must be after all hooks
+  if (!user) return <div className="p-10 text-center">Loading...</div>;
+
+  const stats = [
+    { label: t('haritha.pending.pickups'), value: '12', icon: Clock, color: 'text-orange-600' },
+    { label: t('haritha.completed.today'), value: '8', icon: CheckCircle, color: 'text-green-600' },
+    { label: 'Total Routes', value: '3', icon: Navigation, color: 'text-blue-600' },
+    { label: 'Active Hours', value: '6.5', icon: Calendar, color: 'text-purple-600' },
+  ];
+
   const handleStatusUpdate = (pickupId, newStatus) => {
-    // Simulate status update
     alert(`Pickup ${pickupId} marked as ${newStatus}`);
   };
 
@@ -95,38 +137,6 @@ const HarithaDashboard = () => {
       default: return 'text-gray-600 bg-gray-50 dark:bg-gray-900/20';
     }
   };
-const [coordinates, setCoordinates] = useState([]);
-
-useEffect(() => {
-  const fetchCoords = async () => {
-    const results = await Promise.all(
-      pickupQueue.map(async (pickup) => {
-        try {
-          const response = await fetch(
-            `https://maps.googleapis.com/maps/api/geocode/json?address=${encodeURIComponent(
-              pickup.address
-            )}&key=${GOOGLE_MAPS_API_KEY}`
-          );
-          const data = await response.json();
-          if (data.results.length > 0) {
-            const { lat, lng } = data.results[0].geometry.location;
-            return { ...pickup, lat, lng };
-          } else {
-            console.error(`No results for ${pickup.address}`);
-            return null;
-          }
-        } catch (err) {
-          console.error(`Geocoding failed for ${pickup.address}`, err);
-          return null;
-        }
-      })
-    );
-    setCoordinates(results.filter(Boolean));
-  };
-
-  fetchCoords();
-}, []);
-
 
   return (
     <div className="space-y-6">
@@ -159,7 +169,7 @@ useEffect(() => {
         </div>
       </div>
 
-      {/* Stats */}
+      {/* Stats Section */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
         {stats.map((stat, index) => {
           const Icon = stat.icon;
@@ -244,41 +254,39 @@ useEffect(() => {
 
       {/* Map Section */}
       <div className="bg-white dark:bg-gray-800 rounded-xl p-6 border border-gray-200 dark:border-gray-700">
-  <div className="flex items-center justify-between mb-6">
-    <h2 className="text-xl font-bold text-gray-900 dark:text-white">
-      {t('haritha.map')}
-    </h2>
-    <MapPin className="h-6 w-6 text-green-500" />
-  </div>
-  <div className="h-64 rounded-lg overflow-hidden">
-    <LoadScript googleMapsApiKey={GOOGLE_MAPS_API_KEY}>
-      <GoogleMap mapContainerStyle={mapContainerStyle} zoom={12} center={center}>
-        {coordinates.map((pickup, index) => (
-          <Marker
-            key={index}
-            position={{ lat: pickup.lat, lng: pickup.lng }}
-            onClick={() => setSelectedPickup(pickup)}
-          />
-        ))}
+        <div className="flex items-center justify-between mb-6">
+          <h2 className="text-xl font-bold text-gray-900 dark:text-white">
+            {t('haritha.map')}
+          </h2>
+          <MapPin className="h-6 w-6 text-green-500" />
+        </div>
+        <div className="h-64 rounded-lg overflow-hidden">
+          <LoadScript googleMapsApiKey={GOOGLE_MAPS_API_KEY}>
+            <GoogleMap mapContainerStyle={mapContainerStyle} zoom={12} center={center}>
+              {coordinates.map((pickup, index) => (
+                <Marker
+                  key={index}
+                  position={{ lat: pickup.lat, lng: pickup.lng }}
+                  onClick={() => setSelectedPickup(pickup)}
+                />
+              ))}
 
-        {selectedPickup && (
-          <InfoWindow
-            position={{ lat: selectedPickup.lat, lng: selectedPickup.lng }}
-            onCloseClick={() => setSelectedPickup(null)}
-          >
-            <div>
-              <h4 className="font-semibold">{selectedPickup.householdName}</h4>
-              <p className="text-sm">{selectedPickup.address}</p>
-              <p className="text-xs">{selectedPickup.wasteType}</p>
-            </div>
-          </InfoWindow>
-        )}
-      </GoogleMap>
-    </LoadScript>
-  </div>
-</div>
- 
-    
+              {selectedPickup && (
+                <InfoWindow
+                  position={{ lat: selectedPickup.lat, lng: selectedPickup.lng }}
+                  onCloseClick={() => setSelectedPickup(null)}
+                >
+                  <div>
+                    <h4 className="font-semibold">{selectedPickup.householdName}</h4>
+                    <p className="text-sm">{selectedPickup.address}</p>
+                    <p className="text-xs">{selectedPickup.wasteType}</p>
+                  </div>
+                </InfoWindow>
+              )}
+            </GoogleMap>
+          </LoadScript>
+        </div>
+      </div>
     </div>
   );
 };

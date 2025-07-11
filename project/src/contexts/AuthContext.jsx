@@ -23,7 +23,7 @@ export const AuthProvider = ({ children }) => {
   const login = async (email, password, role) => {
     // Simulate API call
     await new Promise(resolve => setTimeout(resolve, 1000));
-    
+
     const mockUser = {
       id: '1',
       name: role === 'family' ? 'John Doe' : 'Rajesh Kumar',
@@ -32,7 +32,7 @@ export const AuthProvider = ({ children }) => {
       ecoPoints: role === 'family' ? 1250 : undefined,
       badges: role === 'family' ? ['Water Saver', 'Waste Warrior'] : undefined
     };
-    
+
     setUser(mockUser);
     localStorage.setItem('user', JSON.stringify(mockUser));
     return true;
@@ -44,7 +44,7 @@ export const AuthProvider = ({ children }) => {
   };
 
   return (
-    <AuthContext.Provider value={{ user, login, logout, isAuthenticated: !!user }}>
+    <AuthContext.Provider value={{ user, setUser, login, logout, isAuthenticated: !!user }}>
       {children}
     </AuthContext.Provider>
   );

@@ -1,6 +1,8 @@
 import React from 'react';
 import { useAuth } from '../../contexts/AuthContext';
 import { useLanguage } from '../../contexts/LanguageContext';
+import { useNavigate, useLocation } from 'react-router-dom';
+
 import { 
   Home, 
   Users, 
@@ -11,29 +13,38 @@ import {
   FileText, 
   X,
   BarChart3,
-  Leaf
+  Leaf,
+  Trash2,
+  Youtube
 } from 'lucide-react';
 
 const Sidebar = ({ isOpen, onClose, activeSection, onNavigate }) => {
+  const navigate = useNavigate();
+const location = useLocation();
   const { user } = useAuth();
   const { t } = useLanguage();
+  
 
   const familyNavItems = [
-    { id: 'dashboard', label: t('nav.home'), icon: Home },
-    { id: 'community', label: t('nav.community'), icon: Users },
-    { id: 'education', label: t('nav.education'), icon: BookOpen },
-    { id: 'profile', label: t('nav.profile'), icon: User },
-  ];
+  { id: 'dashboard', label: t('nav.home'), icon: Home, route: `/family-dashboard/${user?.id}` },
+  { id: 'community', label: t('nav.community'), icon: Users, route: '/community' },
+  { id: 'waste', label: t('Manage Waste'), icon: Trash2, route: `/waste/${user?.id}` },
+  { id: 'requests', label: t('Pickup Requests'), icon: Truck, route: `/pickup-requests/${user?.id}` },
+  { id: 'videos', label: t('Video Lessons'), icon: Youtube, route: '/videos' },
+  { id: 'segregation', label: t('Segregate Waste'), icon: BarChart3, route: '/segregation' },
+  { id: 'profile', label: t('nav.profile'), icon: User, route: '/profile' } // Coming soon
+];
+
 
   const harithaNavItems = [
-    { id: 'dashboard', label: t('nav.home'), icon: Home },
-    { id: 'pickups', label: t('haritha.pickup.queue'), icon: Truck },
-    { id: 'map', label: t('haritha.map'), icon: MapPin },
- 
-    { id: 'profile', label: t('nav.profile'), icon: User },
-  ];
+  { id: 'dashboard', label: t('nav.home'), icon: Home, route: `/haritha-dashboard/${user?.id}` },
+  { id: 'pickups', label: t('haritha.pickup.queue'), icon: Truck, route: `/pickups/${user?.id}` },
+  { id: 'map', label: t('haritha.map'), icon: MapPin, route: '/map' },
+  { id: 'profile', label: t('nav.profile'), icon: User, route: '/profile' }
+];
 
-  const navItems = user?.role === 'family' ? familyNavItems : harithaNavItems;
+
+  const navItems = user?.role === 'Family' ? familyNavItems : harithaNavItems;
 
   return (
     <>
@@ -72,15 +83,19 @@ const Sidebar = ({ isOpen, onClose, activeSection, onNavigate }) => {
           <nav className="flex-1 p-4 space-y-2">
             {navItems.map((item) => {
               const Icon = item.icon;
-              const isActive = activeSection === item.id;
+              const isActive = location.pathname === item.route;
+
               
               return (
                 <button
                   key={item.id}
                   onClick={() => {
-                    onNavigate(item.id);
-                    onClose();
-                  }}
+  if (item.route) {
+    navigate(item.route);
+    onClose();
+  }
+}}
+
                   className={`w-full flex items-center px-3 py-2 text-sm font-medium rounded-lg transition-colors ${
                     isActive
                       ? 'bg-green-100 dark:bg-green-900/20 text-green-700 dark:text-green-400'
@@ -96,32 +111,33 @@ const Sidebar = ({ isOpen, onClose, activeSection, onNavigate }) => {
 
           {/* User Info */}
           {user && (
-            <div className="p-4 border-t border-gray-200 dark:border-gray-700">
-              <div className="flex items-center">
-                <div className="w-10 h-10 bg-gradient-to-br from-green-500 to-emerald-600 rounded-full flex items-center justify-center">
-                  <span className="text-white font-semibold text-sm">
-                    {user.name.charAt(0)}
-                  </span>
-                </div>
-                <div className="ml-3">
-                  <p className="text-sm font-medium text-gray-900 dark:text-white">
-                    {user.name}
-                  </p>
-                  <p className="text-xs text-gray-500 dark:text-gray-400 capitalize">
-                    {user.role.replace('-', ' ')}
-                  </p>
-                  {user.ecoPoints && (
-                    <div className="flex items-center mt-1">
-                      <Leaf className="h-3 w-3 text-green-500 mr-1" />
-                      <span className="text-xs text-green-600 dark:text-green-400 font-medium">
-                        {user.ecoPoints} {t('family.eco.points')}
-                      </span>
-                    </div>
-                  )}
-                </div>
-              </div>
-            </div>
-          )}
+  <div className="p-4 border-t border-gray-200 dark:border-gray-700">
+    <div className="flex items-center">
+      <div className="w-10 h-10 bg-gradient-to-br from-green-500 to-emerald-600 rounded-full flex items-center justify-center">
+        <span className="text-white font-semibold text-sm">
+          {user?.name?.charAt(0) || ''}
+        </span>
+      </div>
+      <div className="ml-3">
+        <p className="text-sm font-medium text-gray-900 dark:text-white">
+          {user?.name || 'User'}
+        </p>
+        <p className="text-xs text-gray-500 dark:text-gray-400 capitalize">
+          {user?.role?.replace('-', ' ') || ''}
+        </p>
+        {user.ecoPoints && (
+          <div className="flex items-center mt-1">
+            <Leaf className="h-3 w-3 text-green-500 mr-1" />
+            <span className="text-xs text-green-600 dark:text-green-400 font-medium">
+              {user.ecoPoints} {t('family.eco.points')}
+            </span>
+          </div>
+        )}
+      </div>
+    </div>
+  </div>
+)}
+
         </div>
       </div>
     </>
