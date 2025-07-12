@@ -1,16 +1,27 @@
 import React from 'react';
 import { useLanguage } from '../../contexts/LanguageContext';
-import { 
-  Users, 
-  MessageSquare, 
-  TrendingDown, 
-  PieChart, 
+import {
+  Users,
+  MessageSquare,
+  TrendingDown,
+  PieChart,
   Trophy,
   Zap,
   Droplets,
-  Trash2
+  Trash2,
 } from 'lucide-react';
-import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart as RechartsPieChart, Cell } from 'recharts';
+import {
+  LineChart,
+  Line,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  ResponsiveContainer,
+  PieChart as RechartsPieChart,
+  Pie,
+  Cell,
+} from 'recharts';
 
 const CommunityDashboard = () => {
   const { t } = useLanguage();
@@ -53,16 +64,12 @@ const CommunityDashboard = () => {
       <div className="bg-gradient-to-r from-indigo-500 to-purple-600 rounded-2xl p-6 text-white">
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-2xl font-bold mb-2">
-              {t('community.dashboard')}
-            </h1>
-            <p className="text-indigo-100 mb-4">
-              Track our collective sustainability impact
-            </p>
+            <h1 className="text-2xl font-bold mb-2">{t('community.dashboard')}</h1>
+            <p className="text-indigo-100 mb-4">Track our collective sustainability impact</p>
           </div>
           <div className="hidden md:block">
             <div className="w-20 h-20 bg-white/20 rounded-full flex items-center justify-center">
-              <span className="text-3xl">🏘️</span>
+              <span className="text-3xl">🏘</span>
             </div>
           </div>
         </div>
@@ -73,16 +80,17 @@ const CommunityDashboard = () => {
         {communityStats.map((stat, index) => {
           const Icon = stat.icon;
           return (
-            <div key={index} className="bg-white dark:bg-gray-800 rounded-xl p-6 border border-gray-200 dark:border-gray-700">
+            <div
+              key={index}
+              className="bg-white dark:bg-gray-800 rounded-xl p-6 border border-gray-200 dark:border-gray-700"
+            >
               <div className="flex items-center justify-between mb-4">
                 <Icon className={`h-6 w-6 ${stat.color}`} />
               </div>
               <h3 className="text-2xl font-bold text-gray-900 dark:text-white mb-1">
                 {stat.value}
               </h3>
-              <p className="text-sm text-gray-600 dark:text-gray-400">
-                {stat.label}
-              </p>
+              <p className="text-sm text-gray-600 dark:text-gray-400">{stat.label}</p>
             </div>
           );
         })}
@@ -105,20 +113,8 @@ const CommunityDashboard = () => {
                 <XAxis dataKey="month" />
                 <YAxis />
                 <Tooltip />
-                <Line 
-                  type="monotone" 
-                  dataKey="electricity" 
-                  stroke="#3B82F6" 
-                  strokeWidth={2}
-                  name="Electricity (kWh)"
-                />
-                <Line 
-                  type="monotone" 
-                  dataKey="water" 
-                  stroke="#06B6D4" 
-                  strokeWidth={2}
-                  name="Water (L)"
-                />
+                <Line type="monotone" dataKey="electricity" stroke="#3B82F6" strokeWidth={2} name="Electricity (kWh)" />
+                <Line type="monotone" dataKey="water" stroke="#06B6D4" strokeWidth={2} name="Water (L)" />
               </LineChart>
             </ResponsiveContainer>
           </div>
@@ -136,7 +132,7 @@ const CommunityDashboard = () => {
             <ResponsiveContainer width="100%" height="100%">
               <RechartsPieChart>
                 <Tooltip />
-                <RechartsPieChart.Pie
+                <Pie
                   data={wasteData}
                   cx="50%"
                   cy="50%"
@@ -148,14 +144,14 @@ const CommunityDashboard = () => {
                   {wasteData.map((entry, index) => (
                     <Cell key={`cell-${index}`} fill={entry.color} />
                   ))}
-                </RechartsPieChart.Pie>
+                </Pie>
               </RechartsPieChart>
             </ResponsiveContainer>
           </div>
         </div>
       </div>
 
-      {/* Community Leaderboard */}
+      {/* Leaderboard */}
       <div className="bg-white dark:bg-gray-800 rounded-xl p-6 border border-gray-200 dark:border-gray-700">
         <div className="flex items-center justify-between mb-6">
           <h2 className="text-xl font-bold text-gray-900 dark:text-white">
@@ -170,36 +166,36 @@ const CommunityDashboard = () => {
               className="flex items-center justify-between p-4 rounded-lg bg-gray-50 dark:bg-gray-700/50"
             >
               <div className="flex items-center space-x-4">
-                <div className={`w-8 h-8 rounded-full flex items-center justify-center font-bold text-white ${
-                  community.rank === 1 ? 'bg-yellow-500' :
-                  community.rank === 2 ? 'bg-gray-400' :
-                  community.rank === 3 ? 'bg-amber-600' : 'bg-gray-300'
-                }`}>
+                <div
+                  className={`w-8 h-8 rounded-full flex items-center justify-center font-bold text-white ${
+                    community.rank === 1
+                      ? 'bg-yellow-500'
+                      : community.rank === 2
+                      ? 'bg-gray-400'
+                      : community.rank === 3
+                      ? 'bg-amber-600'
+                      : 'bg-gray-300'
+                  }`}
+                >
                   {community.rank}
                 </div>
                 <div>
-                  <h3 className="font-semibold text-gray-900 dark:text-white">
-                    {community.name}
-                  </h3>
-                  <p className="text-sm text-gray-600 dark:text-gray-400">
-                    {community.members} families
-                  </p>
+                  <h3 className="font-semibold text-gray-900 dark:text-white">{community.name}</h3>
+                  <p className="text-sm text-gray-600 dark:text-gray-400">{community.members} families</p>
                 </div>
               </div>
               <div className="text-right">
                 <p className="font-bold text-gray-900 dark:text-white">
                   {community.points.toLocaleString()}
                 </p>
-                <p className="text-sm text-gray-600 dark:text-gray-400">
-                  points
-                </p>
+                <p className="text-sm text-gray-600 dark:text-gray-400">points</p>
               </div>
             </div>
           ))}
         </div>
       </div>
 
-      {/* Community Feedback */}
+      {/* Feedback */}
       <div className="bg-white dark:bg-gray-800 rounded-xl p-6 border border-gray-200 dark:border-gray-700">
         <div className="flex items-center justify-between mb-6">
           <h2 className="text-xl font-bold text-gray-900 dark:text-white">
@@ -207,19 +203,15 @@ const CommunityDashboard = () => {
           </h2>
           <MessageSquare className="h-6 w-6 text-blue-500" />
         </div>
-        <div className="bg-gray-50 dark:bg-gray-700/50 rounded-lg p-8">
-          <div className="text-center">
-            <MessageSquare className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-            <h3 className="font-semibold text-gray-900 dark:text-white mb-2">
-              Share Your Feedback
-            </h3>
-            <p className="text-gray-600 dark:text-gray-400 mb-4">
-              Help us improve our sustainability initiatives
-            </p>
-            <button className="bg-blue-500 text-white px-6 py-2 rounded-md hover:bg-blue-600 transition-colors">
-              Open Feedback Form
-            </button>
-          </div>
+        <div className="bg-gray-50 dark:bg-gray-700/50 rounded-lg p-8 text-center">
+          <MessageSquare className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+          <h3 className="font-semibold text-gray-900 dark:text-white mb-2">Share Your Feedback</h3>
+          <p className="text-gray-600 dark:text-gray-400 mb-4">
+            Help us improve our sustainability initiatives
+          </p>
+          <button className="bg-blue-500 text-white px-6 py-2 rounded-md hover:bg-blue-600 transition-colors">
+            Open Feedback Form
+          </button>
         </div>
       </div>
     </div>

@@ -15,7 +15,7 @@ import CommunityDashboard from './components/Dashboard/CommunityDashboard';
 import WasteManagementPage from './components/Dashboard/WasteManagementPage';
 import VideoLessonsPage from './components/Dashboard/VideoLessonsPage';
 import SegregateWastePage from './components/Dashboard/SegregateWastePage';
-
+import LandingPage from './components/Dashboard/LandingPage';
 function App() {
   return (
     <ThemeProvider>
@@ -23,6 +23,7 @@ function App() {
         <AuthProvider>
           <Router>
             <Routes>
+              <Route path='/' element={<LandingPage />} />
               <Route path="/login" element={<LoginPage />} />
               <Route path="/signup" element={<SignUp />} />
 

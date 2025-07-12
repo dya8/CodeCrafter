@@ -1,24 +1,34 @@
 import React, { useEffect, useState } from 'react';
 import axios from 'axios';
 import { useParams } from 'react-router-dom';
-import { Leaf } from 'lucide-react';
 
 const CollectorPickupQueue = () => {
   const { id } = useParams(); // collector ID from URL
   const [requests, setRequests] = useState([]);
-  console.log(id)
-  useEffect(() => {
-    const fetchRequests = async () => {
-      try {
-        const res = await axios.get(`http://localhost:5000/api/collector/${id}/requests`);
-        setRequests(res.data);
-      } catch (err) {
-        console.error("❌ Error fetching collector requests", err);
-      }
-    };
 
+  useEffect(() => {
     fetchRequests();
   }, [id]);
+
+  const fetchRequests = async () => {
+    try {
+      const res = await axios.get(`http://localhost:5000/api/collector/${id}/requests`);
+      setRequests(res.data);
+    } catch (err) {
+      console.error("❌ Error fetching collector requests", err);
+    }
+  };
+
+  const markAsCollected = async (requestId) => {
+    try {
+      const res = await axios.patch(`http://localhost:5000/api/collector/request/${requestId}/collect`);
+      alert("✅ Marked as collected!");
+      fetchRequests(); // Refresh the list
+    } catch (err) {
+      console.error("❌ Error updating status", err);
+      alert("❌ Failed to mark as collected.");
+    }
+  };
 
   return (
     <div className="p-6">
@@ -37,7 +47,7 @@ const CollectorPickupQueue = () => {
                 <span className={`text-xs px-2 py-1 rounded-full font-semibold ${
                   req.status === 'assigned'
                     ? 'bg-blue-100 text-blue-800'
-                    : 'bg-yellow-100 text-yellow-800'
+                    : 'bg-green-100 text-green-800'
                 }`}>
                   {req.status.toUpperCase()}
                 </span>
@@ -48,11 +58,20 @@ const CollectorPickupQueue = () => {
                 <p><strong>Amount:</strong> {req.amountKg} kg</p>
                 {req.familyId && (
                   <>
-                    <p><strong>Family Name:</strong> {req.familyId.email}</p>
+                    <p><strong>Family Email:</strong> {req.familyId.email}</p>
                     <p><strong>Address:</strong> {req.familyId.address}</p>
                   </>
                 )}
               </div>
+
+              {req.status === 'assigned' && (
+                <button
+                  onClick={() => markAsCollected(req._id)}
+                  className="mt-4 bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700 transition"
+                >
+                  Mark as Collected
+                </button>
+              )}
             </li>
           ))}
         </ul>

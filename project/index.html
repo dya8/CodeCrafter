@@ -4,22 +4,108 @@
     <meta charset="UTF-8" />
     <link rel="icon" type="image/svg+xml" href="/vite.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <meta name="description" content="Green Yathra - Your Journey to Sustainability. A comprehensive platform for families and waste management services in Kerala." />
-    <meta name="keywords" content="sustainability, waste management, Kerala, eco-friendly, green living, haritha karma sena" />
-    <meta name="theme-color" content="#22c55e" />
-    
-    <!-- PWA Manifest -->
-    <link rel="manifest" href="/manifest.json" />
-    
-    <!-- Fonts -->
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-    
-    <title>Green Yathra - Your Journey to Sustainability</title>
+    <title>Green Yathra | A Journey for Your Sustainability</title>
+    <meta
+      name="description"
+      content="Explore global education opportunities with Green Yathra. Your guide to studying abroad in the USA, UK, Canada, Australia, Germany, and more!"
+    />
+    <meta name="theme-color" content="#0f172a" />
+    <meta property="og:title" content="Green Yathra" />
+    <meta property="og:description" content="Your global education journey starts here." />
+    <meta property="og:image" content="/your-preview-image.jpg" />
+    <meta property="og:type" content="website" />
+
+    <style>
+      @font-face {
+        font-family: 'BrainBridg';
+        src: url('/fonts/BrainBridg.ttf') format('truetype');
+      }
+
+      body {
+        margin: 0;
+        font-family: 'Inter', sans-serif;
+        color: #fff;
+        /* DO NOT set background here unless needed globally */
+      }
+
+      /* Chatbot Styles */
+      .chatbot-button {
+        position: fixed;
+        bottom: 20px;
+        right: 20px;
+        z-index: 9999;
+        background-color: #22c55e;
+        color: #fff;
+        border: none;
+        padding: 14px 18px;
+        border-radius: 9999px;
+        font-size: 18px;
+        cursor: pointer;
+        box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3);
+        transition: background-color 0.3s;
+      }
+
+      .chatbot-button:hover {
+        background-color: #15803d;
+      }
+
+      .chatbot-container {
+        position: fixed;
+        bottom: 80px;
+        right: 20px;
+        width: 350px;
+        height: 500px;
+        z-index: 9999;
+        box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3);
+        border-radius: 10px;
+        overflow: hidden;
+        display: none;
+      }
+
+      .chatbot-iframe {
+        width: 100%;
+        height: 100%;
+        border: none;
+      }
+    </style>
   </head>
+
   <body>
+    <!-- React Root -->
     <div id="root"></div>
+
+    <!-- Chatbot -->
+    <button class="chatbot-button" onclick="toggleChatbot()">🌿 Ask Us</button>
+
+    <div class="chatbot-container" id="chatbotContainer">
+      <iframe
+        src="https://www.chatbase.co/chatbot-iframe/3UkAWFtuB1819RXGa0Uj_"
+        class="chatbot-iframe"
+      ></iframe>
+    </div>
+
+    <!-- Load React App -->
     <script type="module" src="/src/main.jsx"></script>
+
+    <!-- Chatbot Behavior Script -->
+    <script>
+      const chatbotContainer = document.getElementById('chatbotContainer');
+      const chatbotButton = document.querySelector('.chatbot-button');
+
+      function toggleChatbot() {
+        chatbotContainer.style.display =
+          chatbotContainer.style.display === 'block' ? 'none' : 'block';
+      }
+
+      document.addEventListener('click', function (event) {
+        if (
+          chatbotContainer.style.display === 'block' &&
+          !chatbotContainer.contains(event.target) &&
+          !chatbotButton.contains(event.target)
+        ) {
+          chatbotContainer.style.display = 'none';
+        }
+      });
+    </script>
   </body>
 </html>
